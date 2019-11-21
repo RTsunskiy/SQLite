@@ -1,0 +1,8 @@
+<resources>
+    <string name="app_name">SQLite</string>
+    <string name="action_settings">Settings</string>
+    <string name="save_data_title">Сохранить данные</string>
+    <string name="save_data_message">Нажмите ОК, чтобы сохранить</string>
+    <string name="yes">Да</string>
+    <string name="alert_dialog_title">Сохранить данные</string>
+</resources>
