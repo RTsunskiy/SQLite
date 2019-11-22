@@ -13,11 +13,10 @@ import java.util.List;
 public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MainHolder> {
 
         private List<String> fileList;
-        private TextView mTv;
 
 
-        public void setItems(List<String> fileNames, TextView tv) {
-            mTv = tv;
+
+        public void setItems(List<String> fileNames) {
             fileList = fileNames;
             notifyDataSetChanged();
         }
@@ -25,7 +24,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MainHolder> {
         @NonNull
         @Override
         public MainHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.activity_main, parent, false);
+            View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.recycler_item, parent, false);
             return new MainHolder(view);
         }
 
@@ -52,7 +51,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MainHolder> {
 
             public MainHolder(@NonNull View itemView) {
                 super(itemView);
-                fileName = itemView.findViewById(R.id.main_recycler);
+                fileName = itemView.findViewById(R.id.file_name_tv);
             }
         }
     }

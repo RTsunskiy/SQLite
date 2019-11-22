@@ -7,6 +7,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.os.AsyncTask;
 import android.os.Bundle;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -14,53 +15,84 @@ import com.google.android.material.snackbar.Snackbar;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import android.provider.BaseColumns;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
 
     private SQLiteDatabase sb;
     private ContentValues cv;
+    private RecyclerView recycler;
+    private List<String> titles = new ArrayList<>();
+    private MainAdapter adapter;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
+        recycler = findViewById(R.id.main_recycler);
+        sb = new NotesDbHelper(MainActivity.this).getWritableDatabase();
 
-        sb = new NotesDBHelper(this).getWritableDatabase();
-        cv = new ContentValues();
-
+        updateView();
         initFab();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        Cursor c = sb.query("mytable",
-                null,
-                null,
-                null,
-                null,
-                null,
-                null);
-        if (c.moveToFirst()) {
-            int idColIndex = c.getColumnIndex("id");
-            int nameColIndex = c.getColumnIndex("name");
 
-            do {
-                String note = c.getString(nameColIndex);
-            } while (c.moveToNext());
-            {
-            } else
-            c.close();
-        }
+
     }
 
+    private void updateView() {
+        SQLiteDatabase db = new NotesDbHelper(this).getWritableDatabase();
+
+        String[] projection = {
+               BaseColumns._ID,
+                NotesDbSchema.NotesTable.Cols.NOTE,
+        };
+
+        Cursor cursor = db.query(
+                NotesDbSchema.NotesTable.NAME,
+                projection,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+
+        try {
+            while (cursor.moveToNext()) {
+                String title = cursor.getString(
+                        cursor.getColumnIndex(NotesDbSchema.NotesTable.Cols.NOTE));
+                titles.add(title);
+            }
+        } finally {
+            cursor.close();
+        }
+        LinearLayoutManager layoutManager = new LinearLayoutManager(MainActivity.this, RecyclerView.VERTICAL, false);
+        recycler.setLayoutManager(layoutManager);
+        adapter = new MainAdapter();
+        adapter.setItems(titles);
+        recycler.setAdapter(adapter);
+        DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recycler.getContext(),
+                layoutManager.getOrientation());
+        recycler.addItemDecoration(dividerItemDecoration);
+        adapter.notifyDataSetChanged();
+
+    }
 
 
     private void initFab() {
@@ -83,15 +115,16 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 String insertText = editText.getText().toString();
-                cv.put("name", insertText);
-                long rowID = sb.insert("mytable", null, cv);
+                cv = new ContentValues();
+                cv.put(NotesDbSchema.NotesTable.Cols.NOTE, insertText);
+                long rowID = sb.insert(NotesDbSchema.NotesTable.NAME, null, cv);
+                updateView();
             }
         });
+
         AlertDialog dialog = builder.create();
         dialog.show();
     }
-
-
 
 
 }
