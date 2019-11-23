@@ -2,11 +2,12 @@
 <LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="@dimen/recycler_item_height">
 
     <TextView
         android:layout_width="wrap_content"
         android:padding="@dimen/default_padding"
+        android:textSize="@dimen/recycler_item_text_size"
         android:layout_height="wrap_content"
         android:id="@+id/file_name_tv"/>
 

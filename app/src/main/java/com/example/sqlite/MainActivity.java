@@ -24,6 +24,8 @@ import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
+import android.widget.PopupMenu;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,11 +53,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-
-
     }
 
     private void updateView() {
+        titles.clear();
         SQLiteDatabase db = new NotesDbHelper(this).getWritableDatabase();
 
         String[] projection = {
@@ -85,7 +86,7 @@ public class MainActivity extends AppCompatActivity {
         LinearLayoutManager layoutManager = new LinearLayoutManager(MainActivity.this, RecyclerView.VERTICAL, false);
         recycler.setLayoutManager(layoutManager);
         adapter = new MainAdapter();
-        adapter.setItems(titles);
+        adapter.setItems(titles, this);
         recycler.setAdapter(adapter);
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recycler.getContext(),
                 layoutManager.getOrientation());
@@ -125,6 +126,8 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog dialog = builder.create();
         dialog.show();
     }
+
+
 
 
 }
