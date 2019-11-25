@@ -4,6 +4,6 @@
         <item
             android:id="@+id/menu1"
             android:icon="@mipmap/ic_launcher"
-            android:title="Popup menu item 1"/>
+            android:title="@string/delete_note_string"/>
     </group>
 </menu>

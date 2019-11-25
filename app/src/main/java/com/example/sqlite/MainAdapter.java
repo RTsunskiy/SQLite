@@ -1,6 +1,9 @@
 package com.example.sqlite;
 
 import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.provider.BaseColumns;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
@@ -10,6 +13,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DividerItemDecoration;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.List;
@@ -27,6 +32,11 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MainHolder> {
             notifyDataSetChanged();
         }
 
+    private void setItemsAfterDelete(List<String> fileNames) {
+        fileList = fileNames;
+        notifyDataSetChanged();
+    }
+
         @NonNull
         @Override
         public MainHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -37,13 +47,13 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MainHolder> {
 
 
     @Override
-        public void onBindViewHolder(@NonNull MainHolder holder, int position) {
+        public void onBindViewHolder(@NonNull MainHolder holder, final int position) {
             final String files = fileList.get(position);
             holder.fileName.setText(files);
             holder.fileName.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    showPopupMenu(v);
+                    showPopupMenu(v, position);
                     return false;
                 }
             });
@@ -70,19 +80,24 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MainHolder> {
 
 
 
-    private void showPopupMenu(View v) {
+    private void showPopupMenu(final View v, final int position) {
         PopupMenu popupMenu = new PopupMenu(mContext, v);
         popupMenu.inflate(R.menu.menu_main);
 
-        popupMenu
-                .setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                     @Override
                     public boolean onMenuItemClick(MenuItem item) {
                         switch (item.getItemId()) {
                             case R.id.menu1:
-                                Toast.makeText(mContext,
-                                        "Вы выбрали PopupMenu 1",
-                                        Toast.LENGTH_SHORT).show();
+                                SQLiteDatabase db = new NotesDbHelper(mContext).getWritableDatabase();
+                                String selection = BaseColumns._ID + " = ?";
+                                String id = String.valueOf(position);
+                                String[] selectionArgs = { id };
+                                int count = db.delete(
+                                        NotesDbSchema.NotesTable.NAME,
+                                        selection,
+                                        selectionArgs);
+                                updateView();
                                 return true;
                             default:
                                 return false;
@@ -93,11 +108,42 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MainHolder> {
         popupMenu.setOnDismissListener(new PopupMenu.OnDismissListener() {
             @Override
             public void onDismiss(PopupMenu menu) {
-                Toast.makeText(mContext, "onDismiss",
+                Toast.makeText(mContext, "Ничего не выбрано",
                         Toast.LENGTH_SHORT).show();
             }
         });
         popupMenu.show();
+    }
+
+    private void updateView() {
+        fileList.clear();
+        SQLiteDatabase db = new NotesDbHelper(mContext).getWritableDatabase();
+
+        String[] projection = {
+                BaseColumns._ID,
+                NotesDbSchema.NotesTable.Cols.NOTE,
+        };
+
+        Cursor cursor = db.query(
+                NotesDbSchema.NotesTable.NAME,
+                projection,
+                null,
+                null,
+                null,
+                null,
+                null
+        );
+
+        try {
+            while (cursor.moveToNext()) {
+                String title = cursor.getString(
+                        cursor.getColumnIndex(NotesDbSchema.NotesTable.Cols.NOTE));
+                fileList.add(title);
+            }
+        } finally {
+            cursor.close();
+        }
+        setItemsAfterDelete(fileList);
     }
     }
 
