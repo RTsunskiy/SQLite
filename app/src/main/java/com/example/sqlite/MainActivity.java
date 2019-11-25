@@ -55,7 +55,7 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
     }
 
-    private void updateView() {
+    public void updateView() {
         titles.clear();
         SQLiteDatabase db = new NotesDbHelper(this).getWritableDatabase();
 

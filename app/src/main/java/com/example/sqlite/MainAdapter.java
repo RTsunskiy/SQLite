@@ -32,10 +32,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MainHolder> {
             notifyDataSetChanged();
         }
 
-    private void setItemsAfterDelete(List<String> fileNames) {
-        fileList = fileNames;
-        notifyDataSetChanged();
-    }
+
 
         @NonNull
         @Override
@@ -53,8 +50,49 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MainHolder> {
             holder.fileName.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
-                    showPopupMenu(v, position);
-                    return false;
+                    PopupMenu popup = new PopupMenu(mContext, v);
+                    popup.getMenuInflater().inflate(R.menu.menu_main, popup.getMenu());
+
+                    popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                        public boolean onMenuItemClick(MenuItem item) {
+                            SQLiteDatabase db = new NotesDbHelper(mContext).getWritableDatabase();
+                            String selection = NotesDbSchema.NotesTable.Cols.NOTE + " = ?";
+                            String[] selectionArgs = { fileList.get(position) };
+                            int count = db.delete(
+                                    NotesDbSchema.NotesTable.NAME,
+                                    selection,
+                                    selectionArgs);
+                            fileList.clear();
+                            String[] projection = {
+                                    BaseColumns._ID,
+                                    NotesDbSchema.NotesTable.Cols.NOTE,
+                            };
+                            Cursor cursor = db.query(
+                                    NotesDbSchema.NotesTable.NAME,
+                                    projection,
+                                    null,
+                                    null,
+                                    null,
+                                    null,
+                                    null
+                            );
+
+                            try {
+                                while (cursor.moveToNext()) {
+                                    String title = cursor.getString(
+                                            cursor.getColumnIndex(NotesDbSchema.NotesTable.Cols.NOTE));
+                                    fileList.add(title);
+                                }
+                            } finally {
+                                cursor.close();
+                            }
+
+                            setItems(fileList, mContext);
+                            return true;
+                        }
+                    });
+                    popup.show();
+                    return true;
                 }
             });
 
@@ -79,71 +117,5 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MainHolder> {
         }
 
 
-
-    private void showPopupMenu(final View v, final int position) {
-        PopupMenu popupMenu = new PopupMenu(mContext, v);
-        popupMenu.inflate(R.menu.menu_main);
-
-        popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-                    @Override
-                    public boolean onMenuItemClick(MenuItem item) {
-                        switch (item.getItemId()) {
-                            case R.id.menu1:
-                                SQLiteDatabase db = new NotesDbHelper(mContext).getWritableDatabase();
-                                String selection = BaseColumns._ID + " = ?";
-                                String id = String.valueOf(position);
-                                String[] selectionArgs = { id };
-                                int count = db.delete(
-                                        NotesDbSchema.NotesTable.NAME,
-                                        selection,
-                                        selectionArgs);
-                                updateView();
-                                return true;
-                            default:
-                                return false;
-                        }
-                    }
-                });
-
-        popupMenu.setOnDismissListener(new PopupMenu.OnDismissListener() {
-            @Override
-            public void onDismiss(PopupMenu menu) {
-                Toast.makeText(mContext, "Ничего не выбрано",
-                        Toast.LENGTH_SHORT).show();
-            }
-        });
-        popupMenu.show();
-    }
-
-    private void updateView() {
-        fileList.clear();
-        SQLiteDatabase db = new NotesDbHelper(mContext).getWritableDatabase();
-
-        String[] projection = {
-                BaseColumns._ID,
-                NotesDbSchema.NotesTable.Cols.NOTE,
-        };
-
-        Cursor cursor = db.query(
-                NotesDbSchema.NotesTable.NAME,
-                projection,
-                null,
-                null,
-                null,
-                null,
-                null
-        );
-
-        try {
-            while (cursor.moveToNext()) {
-                String title = cursor.getString(
-                        cursor.getColumnIndex(NotesDbSchema.NotesTable.Cols.NOTE));
-                fileList.add(title);
-            }
-        } finally {
-            cursor.close();
-        }
-        setItemsAfterDelete(fileList);
-    }
     }
 
