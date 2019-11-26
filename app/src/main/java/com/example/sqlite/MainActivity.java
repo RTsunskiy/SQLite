@@ -62,6 +62,8 @@ public class MainActivity extends AppCompatActivity {
         String[] projection = {
                BaseColumns._ID,
                 NotesDbSchema.NotesTable.Cols.NOTE,
+                NotesDbSchema.NotesTable.Cols.Check,
+
         };
 
         Cursor cursor = db.query(

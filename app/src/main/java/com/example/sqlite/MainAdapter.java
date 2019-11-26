@@ -1,5 +1,6 @@
 package com.example.sqlite;
 
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -8,6 +9,8 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,12 +26,16 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MainHolder> {
 
         private List<String> fileList;
         private Context mContext;
+        private ContentValues cv;
+        private SQLiteDatabase db;
+        private List<Integer> checkList;
 
 
 
         public void setItems(List<String> fileNames, Context context) {
             fileList = fileNames;
             mContext = context;
+            db = new NotesDbHelper(mContext).getWritableDatabase();
             notifyDataSetChanged();
         }
 
@@ -45,8 +52,23 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MainHolder> {
 
     @Override
         public void onBindViewHolder(@NonNull MainHolder holder, final int position) {
-            final String files = fileList.get(position);
+            String files = fileList.get(position);
             holder.fileName.setText(files);
+            Integer check = checkList.get(position);
+            if (check == 1) {
+                holder.checkBox.setChecked(true);
+            }
+            holder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    cv = new ContentValues();
+                    if (isChecked) {
+                    cv.put(NotesDbSchema.NotesTable.Cols.NOTE, 1);
+                    }
+                    else cv.put(NotesDbSchema.NotesTable.Cols.NOTE, 0);
+                    long rowID = db.insert(NotesDbSchema.NotesTable.NAME, null, cv);
+                }
+            });
             holder.fileName.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View v) {
@@ -55,7 +77,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MainHolder> {
 
                     popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                         public boolean onMenuItemClick(MenuItem item) {
-                            SQLiteDatabase db = new NotesDbHelper(mContext).getWritableDatabase();
+
                             String selection = NotesDbSchema.NotesTable.Cols.NOTE + " = ?";
                             String[] selectionArgs = { fileList.get(position) };
                             int count = db.delete(
@@ -63,9 +85,11 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MainHolder> {
                                     selection,
                                     selectionArgs);
                             fileList.clear();
+                            checkList.clear();
                             String[] projection = {
                                     BaseColumns._ID,
                                     NotesDbSchema.NotesTable.Cols.NOTE,
+                                    NotesDbSchema.NotesTable.Cols.Check,
                             };
                             Cursor cursor = db.query(
                                     NotesDbSchema.NotesTable.NAME,
@@ -81,7 +105,9 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MainHolder> {
                                 while (cursor.moveToNext()) {
                                     String title = cursor.getString(
                                             cursor.getColumnIndex(NotesDbSchema.NotesTable.Cols.NOTE));
+                                    int check = cursor.getInt(cursor.getColumnIndex(NotesDbSchema.NotesTable.Cols.Check));
                                     fileList.add(title);
+                                    checkList.add(check);
                                 }
                             } finally {
                                 cursor.close();
@@ -96,6 +122,8 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MainHolder> {
                 }
             });
 
+
+
         }
 
         @Override
@@ -107,12 +135,14 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MainHolder> {
 
         static class MainHolder extends RecyclerView.ViewHolder {
 
-            private final TextView fileName;
+            private TextView fileName;
+            private CheckBox checkBox;
 
 
             public MainHolder(@NonNull View itemView) {
                 super(itemView);
                 fileName = itemView.findViewById(R.id.file_name_tv);
+                checkBox = itemView.findViewById(R.id.checkBox);
             }
         }
 

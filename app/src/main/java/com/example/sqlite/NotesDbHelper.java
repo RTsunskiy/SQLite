@@ -20,7 +20,8 @@ public class NotesDbHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("create table " + NotesDbSchema.NotesTable.NAME + "(" +
                 " _id integer primary key autoincrement, " +
-                NotesDbSchema.NotesTable.Cols.NOTE + " text)");
+                NotesDbSchema.NotesTable.Cols.NOTE + " text, "  +
+                NotesDbSchema.NotesTable.Cols.CHECK + " integer)");
     }
 
     @Override
