@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
     private ContentValues cv;
     private RecyclerView recycler;
     private List<String> titles = new ArrayList<>();
+    private List<Integer> checkList = new ArrayList<>();
     private MainAdapter adapter;
 
 
@@ -62,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
         String[] projection = {
                BaseColumns._ID,
                 NotesDbSchema.NotesTable.Cols.NOTE,
-                NotesDbSchema.NotesTable.Cols.Check,
+                NotesDbSchema.NotesTable.Cols.CHECK,
 
         };
 
@@ -80,7 +81,9 @@ public class MainActivity extends AppCompatActivity {
             while (cursor.moveToNext()) {
                 String title = cursor.getString(
                         cursor.getColumnIndex(NotesDbSchema.NotesTable.Cols.NOTE));
+                int check = cursor.getInt(cursor.getColumnIndex(NotesDbSchema.NotesTable.Cols.CHECK));
                 titles.add(title);
+                checkList.add(check);
             }
         } finally {
             cursor.close();
@@ -88,7 +91,7 @@ public class MainActivity extends AppCompatActivity {
         LinearLayoutManager layoutManager = new LinearLayoutManager(MainActivity.this, RecyclerView.VERTICAL, false);
         recycler.setLayoutManager(layoutManager);
         adapter = new MainAdapter();
-        adapter.setItems(titles, this);
+        adapter.setItems(titles, this, checkList);
         recycler.setAdapter(adapter);
         DividerItemDecoration dividerItemDecoration = new DividerItemDecoration(recycler.getContext(),
                 layoutManager.getOrientation());

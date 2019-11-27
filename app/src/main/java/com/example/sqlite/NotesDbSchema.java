@@ -7,7 +7,7 @@ public class NotesDbSchema {
 
         public static final class Cols {
             public static final String NOTE = "note";
-            public static final String CHECK = "check";
+            public static final String CHECK = "status";
         }
     }
 }

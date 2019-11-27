@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MainHolder> {
@@ -32,9 +33,10 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MainHolder> {
 
 
 
-        public void setItems(List<String> fileNames, Context context) {
+        public void setItems(List<String> fileNames, Context context, List<Integer> checkList) {
             fileList = fileNames;
             mContext = context;
+            this.checkList = checkList;
             db = new NotesDbHelper(mContext).getWritableDatabase();
             notifyDataSetChanged();
         }
@@ -54,20 +56,28 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MainHolder> {
         public void onBindViewHolder(@NonNull MainHolder holder, final int position) {
             String files = fileList.get(position);
             holder.fileName.setText(files);
+            if (!checkList.isEmpty()) {
             Integer check = checkList.get(position);
             if (check == 1) {
                 holder.checkBox.setChecked(true);
-            }
+            }}
             holder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     cv = new ContentValues();
-                    if (isChecked) {
-                    cv.put(NotesDbSchema.NotesTable.Cols.NOTE, 1);
+                    if (buttonView.isChecked()) {
+                    cv.put(NotesDbSchema.NotesTable.Cols.CHECK, 1);
+                        String[] selectionArgs = {String.valueOf(position)};
+                        long rowID = db.update(NotesDbSchema.NotesTable.NAME, cv, "_id = ?", selectionArgs);
+                       }
+                    if (!buttonView.isChecked()) {
+                        cv.put(NotesDbSchema.NotesTable.Cols.CHECK, 0);
+                        String[] selectionArgs = {String.valueOf(position)};
+                        long rowID = db.update(NotesDbSchema.NotesTable.NAME, cv, "_id = ?", selectionArgs);
+                       }
+
                     }
-                    else cv.put(NotesDbSchema.NotesTable.Cols.NOTE, 0);
-                    long rowID = db.insert(NotesDbSchema.NotesTable.NAME, null, cv);
-                }
+
             });
             holder.fileName.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
@@ -89,7 +99,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MainHolder> {
                             String[] projection = {
                                     BaseColumns._ID,
                                     NotesDbSchema.NotesTable.Cols.NOTE,
-                                    NotesDbSchema.NotesTable.Cols.Check,
+                                    NotesDbSchema.NotesTable.Cols.CHECK,
                             };
                             Cursor cursor = db.query(
                                     NotesDbSchema.NotesTable.NAME,
@@ -105,7 +115,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MainHolder> {
                                 while (cursor.moveToNext()) {
                                     String title = cursor.getString(
                                             cursor.getColumnIndex(NotesDbSchema.NotesTable.Cols.NOTE));
-                                    int check = cursor.getInt(cursor.getColumnIndex(NotesDbSchema.NotesTable.Cols.Check));
+                                    int check = cursor.getInt(cursor.getColumnIndex(NotesDbSchema.NotesTable.Cols.CHECK));
                                     fileList.add(title);
                                     checkList.add(check);
                                 }
@@ -113,7 +123,7 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MainHolder> {
                                 cursor.close();
                             }
 
-                            setItems(fileList, mContext);
+                            setItems(fileList, mContext, checkList);
                             return true;
                         }
                     });
