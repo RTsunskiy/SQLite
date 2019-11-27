@@ -58,6 +58,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void updateView() {
         titles.clear();
+        checkList.clear();
         SQLiteDatabase db = new NotesDbHelper(this).getWritableDatabase();
 
         String[] projection = {

@@ -56,26 +56,23 @@ public class MainAdapter extends RecyclerView.Adapter<MainAdapter.MainHolder> {
         public void onBindViewHolder(@NonNull MainHolder holder, final int position) {
             String files = fileList.get(position);
             holder.fileName.setText(files);
-            if (!checkList.isEmpty()) {
+
             Integer check = checkList.get(position);
             if (check == 1) {
                 holder.checkBox.setChecked(true);
-            }}
+            }
             holder.checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
                 @Override
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     cv = new ContentValues();
                     if (buttonView.isChecked()) {
                     cv.put(NotesDbSchema.NotesTable.Cols.CHECK, 1);
-                        String[] selectionArgs = {String.valueOf(position)};
-                        long rowID = db.update(NotesDbSchema.NotesTable.NAME, cv, "_id = ?", selectionArgs);
                        }
                     if (!buttonView.isChecked()) {
                         cv.put(NotesDbSchema.NotesTable.Cols.CHECK, 0);
-                        String[] selectionArgs = {String.valueOf(position)};
-                        long rowID = db.update(NotesDbSchema.NotesTable.NAME, cv, "_id = ?", selectionArgs);
                        }
-
+                    String[] selectionArgs = {String.valueOf(position + 1)};
+                    long rowID = db.update(NotesDbSchema.NotesTable.NAME, cv, " _id = ?", selectionArgs);
                     }
 
             });
